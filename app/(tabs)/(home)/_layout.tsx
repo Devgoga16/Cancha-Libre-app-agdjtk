@@ -11,6 +11,20 @@ export default function HomeLayout() {
           title: 'Home'
         }}
       />
+      <Stack.Screen
+        name="field/[id]"
+        options={{
+          headerShown: false,
+          presentation: 'modal'
+        }}
+      />
+      <Stack.Screen
+        name="booking/[fieldId]"
+        options={{
+          headerShown: false,
+          presentation: 'modal'
+        }}
+      />
     </Stack>
   );
 }

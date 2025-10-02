@@ -1,79 +1,107 @@
-import React from "react";
-import { Stack, Link } from "expo-router";
-import { FlatList, Pressable, StyleSheet, View, Text, Alert, Platform } from "react-native";
+import React, { useState } from "react";
+import { Stack, Link, router } from "expo-router";
+import { 
+  FlatList, 
+  Pressable, 
+  StyleSheet, 
+  View, 
+  Text, 
+  TextInput,
+  Image,
+  ScrollView,
+  Platform,
+  useColorScheme
+} from "react-native";
 import { IconSymbol } from "@/components/IconSymbol";
-import { GlassView } from "expo-glass-effect";
-import { useTheme } from "@react-navigation/native";
-
-const ICON_COLOR = "#007AFF";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { colors, commonStyles, mockSportsFields, SportsField } from "@/styles/commonStyles";
 
 export default function HomeScreen() {
-  const theme = useTheme();
-  const modalDemos = [
-    {
-      title: "Standard Modal",
-      description: "Full screen modal presentation",
-      route: "/modal",
-      color: "#007AFF",
-    },
-    {
-      title: "Form Sheet",
-      description: "Bottom sheet with detents and grabber",
-      route: "/formsheet",
-      color: "#34C759",
-    },
-    {
-      title: "Transparent Modal",
-      description: "Overlay without obscuring background",
-      route: "/transparent-modal",
-      color: "#FF9500",
-    }
-  ];
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedSport, setSelectedSport] = useState('Todos');
 
-  const renderModalDemo = ({ item }: { item: (typeof modalDemos)[0] }) => (
-    <GlassView style={[
-      styles.demoCard,
-      Platform.OS !== 'ios' && { backgroundColor: theme.dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }
-    ]} glassEffectStyle="regular">
-      <View style={[styles.demoIcon, { backgroundColor: item.color }]}>
-        <IconSymbol name="square.grid.3x3" color="white" size={24} />
+  const sports = ['Todos', 'Fútbol', 'Basketball', 'Volleyball', 'Tenis'];
+
+  const filteredFields = mockSportsFields.filter(field => {
+    const matchesSearch = field.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         field.location.city.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSport = selectedSport === 'Todos' || field.sport === selectedSport;
+    return matchesSearch && matchesSport;
+  });
+
+  const renderFieldCard = ({ item }: { item: SportsField }) => (
+    <Pressable 
+      style={[styles.fieldCard, { backgroundColor: isDark ? colors.cardDark : colors.card }]}
+      onPress={() => router.push(`/(tabs)/(home)/field/${item.id}`)}
+    >
+      <Image source={{ uri: item.images[0] }} style={styles.fieldImage} />
+      <View style={styles.fieldInfo}>
+        <View style={styles.fieldHeader}>
+          <Text style={[styles.fieldName, { color: isDark ? colors.textDark : colors.text }]}>
+            {item.name}
+          </Text>
+          <View style={styles.ratingContainer}>
+            <IconSymbol name="star.fill" size={16} color={colors.accent} />
+            <Text style={[styles.rating, { color: isDark ? colors.textDark : colors.text }]}>
+              {item.rating}
+            </Text>
+          </View>
+        </View>
+        <Text style={[styles.fieldSport, { color: colors.secondary }]}>
+          {item.sport}
+        </Text>
+        <Text style={[styles.fieldLocation, { color: isDark ? colors.textSecondaryDark : colors.textSecondary }]}>
+          {item.location.address}, {item.location.city}
+        </Text>
+        <View style={styles.fieldFooter}>
+          <Text style={[styles.price, { color: colors.main }]}>
+            ${item.pricePerHour}/hora
+          </Text>
+          <View style={[styles.availabilityBadge, { backgroundColor: colors.success }]}>
+            <Text style={styles.availabilityText}>Disponible</Text>
+          </View>
+        </View>
       </View>
-      <View style={styles.demoContent}>
-        <Text style={[styles.demoTitle, { color: theme.colors.text }]}>{item.title}</Text>
-        <Text style={[styles.demoDescription, { color: theme.dark ? '#98989D' : '#666' }]}>{item.description}</Text>
-      </View>
-      <Link href={item.route as any} asChild>
-        <Pressable>
-          <GlassView style={[
-            styles.tryButton,
-            Platform.OS !== 'ios' && { backgroundColor: theme.dark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.08)' }
-          ]} glassEffectStyle="clear">
-            <Text style={[styles.tryButtonText, { color: theme.colors.primary }]}>Try It</Text>
-          </GlassView>
-        </Pressable>
-      </Link>
-    </GlassView>
+    </Pressable>
+  );
+
+  const renderSportFilter = (sport: string) => (
+    <Pressable
+      key={sport}
+      style={[
+        styles.sportFilter,
+        {
+          backgroundColor: selectedSport === sport ? colors.main : (isDark ? colors.backgroundAltDark : colors.backgroundAlt),
+          borderColor: selectedSport === sport ? colors.main : (isDark ? colors.borderDark : colors.border)
+        }
+      ]}
+      onPress={() => setSelectedSport(sport)}
+    >
+      <Text style={[
+        styles.sportFilterText,
+        { color: selectedSport === sport ? '#ffffff' : (isDark ? colors.textDark : colors.text) }
+      ]}>
+        {sport}
+      </Text>
+    </Pressable>
   );
 
   const renderHeaderRight = () => (
     <Pressable
-      onPress={() => Alert.alert("Not Implemented", "This feature is not implemented yet")}
+      onPress={() => router.push('/profile')}
       style={styles.headerButtonContainer}
     >
-      <IconSymbol name="plus" color={theme.colors.primary} />
+      <IconSymbol name="person.circle" color={colors.main} size={28} />
     </Pressable>
   );
 
   const renderHeaderLeft = () => (
-    <Pressable
-      onPress={() => Alert.alert("Not Implemented", "This feature is not implemented yet")}
-      style={styles.headerButtonContainer}
-    >
-      <IconSymbol
-        name="gear"
-        color={theme.colors.primary}
-      />
-    </Pressable>
+    <View style={styles.logoContainer}>
+      <Text style={[styles.logoText, { color: colors.main }]}>CANCHA</Text>
+      <Text style={[styles.logoTextAccent, { color: colors.accent }]}>LIBRE</Text>
+    </View>
   );
 
   return (
@@ -81,25 +109,70 @@ export default function HomeScreen() {
       {Platform.OS === 'ios' && (
         <Stack.Screen
           options={{
-            title: "Building the app...",
+            title: "",
             headerRight: renderHeaderRight,
             headerLeft: renderHeaderLeft,
+            headerStyle: {
+              backgroundColor: isDark ? colors.backgroundDark : colors.background,
+            },
           }}
         />
       )}
-      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <SafeAreaView style={[styles.container, { backgroundColor: isDark ? colors.backgroundDark : colors.background }]}>
+        {/* Header for non-iOS platforms */}
+        {Platform.OS !== 'ios' && (
+          <View style={[styles.header, { backgroundColor: isDark ? colors.backgroundDark : colors.background }]}>
+            {renderHeaderLeft()}
+            {renderHeaderRight()}
+          </View>
+        )}
+
+        {/* Search Bar */}
+        <View style={styles.searchContainer}>
+          <View style={[styles.searchInputContainer, { backgroundColor: isDark ? colors.backgroundAltDark : colors.backgroundAlt }]}>
+            <IconSymbol name="magnifyingglass" size={20} color={isDark ? colors.textSecondaryDark : colors.textSecondary} />
+            <TextInput
+              style={[styles.searchInput, { color: isDark ? colors.textDark : colors.text }]}
+              placeholder="Buscar canchas por ubicación..."
+              placeholderTextColor={isDark ? colors.textSecondaryDark : colors.textSecondary}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+          </View>
+        </View>
+
+        {/* Sport Filters */}
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          style={styles.filtersContainer}
+          contentContainerStyle={styles.filtersContent}
+        >
+          {sports.map(renderSportFilter)}
+        </ScrollView>
+
+        {/* Popular Fields Section */}
+        <View style={styles.sectionHeader}>
+          <Text style={[styles.sectionTitle, { color: isDark ? colors.textDark : colors.text }]}>
+            Canchas Populares
+          </Text>
+          <Text style={[styles.sectionSubtitle, { color: isDark ? colors.textSecondaryDark : colors.textSecondary }]}>
+            Encuentra las mejores canchas cerca de ti
+          </Text>
+        </View>
+
+        {/* Fields List */}
         <FlatList
-          data={modalDemos}
-          renderItem={renderModalDemo}
-          keyExtractor={(item) => item.route}
+          data={filteredFields}
+          renderItem={renderFieldCard}
+          keyExtractor={(item) => item.id}
           contentContainerStyle={[
             styles.listContainer,
             Platform.OS !== 'ios' && styles.listContainerWithTabBar
           ]}
-          contentInsetAdjustmentBehavior="automatic"
           showsVerticalScrollIndicator={false}
         />
-      </View>
+      </SafeAreaView>
     </>
   );
 }
@@ -107,55 +180,150 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // backgroundColor handled dynamically
   },
-  listContainer: {
-    paddingVertical: 16,
-    paddingHorizontal: 16,
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
   },
-  listContainerWithTabBar: {
-    paddingBottom: 100, // Extra padding for floating tab bar
-  },
-  demoCard: {
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+  logoContainer: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  demoIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
+  logoText: {
+    fontSize: 24,
+    fontWeight: '800',
+    marginRight: 4,
   },
-  demoContent: {
-    flex: 1,
-  },
-  demoTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 4,
-    // color handled dynamically
-  },
-  demoDescription: {
-    fontSize: 14,
-    lineHeight: 18,
-    // color handled dynamically
+  logoTextAccent: {
+    fontSize: 24,
+    fontWeight: '800',
   },
   headerButtonContainer: {
     padding: 6,
   },
-  tryButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 6,
+  searchContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
   },
-  tryButtonText: {
+  searchInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 25,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  searchInput: {
+    flex: 1,
+    marginLeft: 10,
+    fontSize: 16,
+  },
+  filtersContainer: {
+    paddingVertical: 10,
+  },
+  filtersContent: {
+    paddingHorizontal: 20,
+  },
+  sportFilter: {
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginRight: 10,
+    borderWidth: 1,
+  },
+  sportFilterText: {
     fontSize: 14,
+    fontWeight: '500',
+  },
+  sectionHeader: {
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+  },
+  sectionTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  sectionSubtitle: {
+    fontSize: 16,
+    fontWeight: '400',
+  },
+  listContainer: {
+    paddingBottom: 20,
+  },
+  listContainerWithTabBar: {
+    paddingBottom: 100,
+  },
+  fieldCard: {
+    borderRadius: 16,
+    marginHorizontal: 20,
+    marginVertical: 8,
+    overflow: 'hidden',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+  },
+  fieldImage: {
+    width: '100%',
+    height: 200,
+    resizeMode: 'cover',
+  },
+  fieldInfo: {
+    padding: 16,
+  },
+  fieldHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+  },
+  fieldName: {
+    fontSize: 18,
     fontWeight: '600',
-    // color handled dynamically
+    flex: 1,
+    marginRight: 10,
+  },
+  ratingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  rating: {
+    fontSize: 14,
+    fontWeight: '500',
+    marginLeft: 4,
+  },
+  fieldSport: {
+    fontSize: 14,
+    fontWeight: '500',
+    marginBottom: 4,
+  },
+  fieldLocation: {
+    fontSize: 14,
+    marginBottom: 12,
+  },
+  fieldFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  price: {
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  availabilityBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  availabilityText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '500',
   },
 });

@@ -5,19 +5,31 @@ import { Stack } from 'expo-router';
 import FloatingTabBar, { TabBarItem } from '@/components/FloatingTabBar';
 
 export default function TabLayout() {
-  // Define the tabs configuration
+  // Define the tabs configuration for Cancha Libre
   const tabs: TabBarItem[] = [
     {
       name: '(home)',
       route: '/(tabs)/(home)/',
       icon: 'house.fill',
-      label: 'Home',
+      label: 'Inicio',
+    },
+    {
+      name: 'explore',
+      route: '/(tabs)/explore',
+      icon: 'magnifyingglass',
+      label: 'Explorar',
+    },
+    {
+      name: 'bookings',
+      route: '/(tabs)/bookings',
+      icon: 'calendar',
+      label: 'Reservas',
     },
     {
       name: 'profile',
       route: '/(tabs)/profile',
       icon: 'person.fill',
-      label: 'Profile',
+      label: 'Perfil',
     },
   ];
 
@@ -27,11 +39,19 @@ export default function TabLayout() {
       <NativeTabs>
         <NativeTabs.Trigger name="(home)">
           <Icon sf="house.fill" drawable="ic_home" />
-          <Label>Home</Label>
+          <Label>Inicio</Label>
+        </NativeTabs.Trigger>
+        <NativeTabs.Trigger name="explore">
+          <Icon sf="magnifyingglass" drawable="ic_search" />
+          <Label>Explorar</Label>
+        </NativeTabs.Trigger>
+        <NativeTabs.Trigger name="bookings">
+          <Icon sf="calendar" drawable="ic_calendar" />
+          <Label>Reservas</Label>
         </NativeTabs.Trigger>
         <NativeTabs.Trigger name="profile">
           <Icon sf="person.fill" drawable="ic_profile" />
-          <Label>Profile</Label>
+          <Label>Perfil</Label>
         </NativeTabs.Trigger>
       </NativeTabs>
     );
@@ -47,6 +67,8 @@ export default function TabLayout() {
         }}
       >
         <Stack.Screen name="(home)" />
+        <Stack.Screen name="explore" />
+        <Stack.Screen name="bookings" />
         <Stack.Screen name="profile" />
       </Stack>
       <FloatingTabBar tabs={tabs} />
